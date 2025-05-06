@@ -6,7 +6,7 @@ using Modio.Models.Converters;
 
 namespace Modio.Models
 {
-    class Result<T>
+    public class Result<T>
     {
         [JsonPropertyName("result_count")]
         public uint Count { get; set; }
