@@ -147,7 +147,7 @@ namespace Modio.Models
         /// The mod's primary mod file.
         /// </summary>
         [JsonPropertyName("modfile")]
-        [JsonConverter(typeof(EmptyObjectConverter))]
+        //[JsonConverter(typeof(EmptyObjectConverter))]
         public File? Modfile { get; set; }
     }
 

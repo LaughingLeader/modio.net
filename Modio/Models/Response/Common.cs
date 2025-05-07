@@ -51,7 +51,7 @@ namespace Modio.Models
         /// The user's avatar data.
         /// </summary>
         [JsonPropertyName("avatar")]
-        [JsonConverter(typeof(EmptyObjectConverter))]
+        //[JsonConverter(typeof(EmptyObjectConverter))]
         public Avatar? Avatar { get; set; }
 
         /// <summary>
