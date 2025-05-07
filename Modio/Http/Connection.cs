@@ -12,13 +12,13 @@ namespace Modio
 {
     using ExceptionMap = Dictionary<HttpStatusCode, Func<HttpResponseMessage, ApiException>>;
 
-    internal interface IConnection
+    internal interface IConnection : IDisposable
     {
         Task<Response<T>> Send<T>(Request request) where T : class;
         Task<Response<T>> Send<T>(Request request, CancellationToken token) where T : class;
     }
 
-    internal class Connection : IConnection
+    internal class Connection : IConnection, IDisposable
     {
         readonly HttpClient http;
 
@@ -138,7 +138,7 @@ namespace Modio
             #endif
         };
 
-        static void HandleErrors(HttpResponseMessage response)
+		static void HandleErrors(HttpResponseMessage response)
         {
             Func<HttpResponseMessage, ApiException>? func;
             if (EXCEPTION_MAP.TryGetValue(response.StatusCode, out func))
@@ -156,5 +156,25 @@ namespace Modio
                 throw ex;
             }
         }
-    }
+
+		private bool disposedValue;
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				disposedValue = true;
+				if (disposing)
+				{
+					http?.Dispose();
+				}
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
+		}
+	}
 }

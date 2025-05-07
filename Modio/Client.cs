@@ -9,7 +9,7 @@ namespace Modio
     /// <summary>
     /// A Client for the mod.io API v1.
     /// </summary>
-    public partial class Client
+    public partial class Client : IDisposable
     {
         /// <summary>
         /// Default host url for the mod.io API v1.
@@ -23,10 +23,10 @@ namespace Modio
 
         private IConnection connection;
 
-        /// <summary>
-        /// Client for the Authentication API.
-        /// </summary>
-        public AuthClient Auth { get; private set; }
+		/// <summary>
+		/// Client for the Authentication API.
+		/// </summary>
+		public AuthClient Auth { get; private set; }
 
         /// <summary>
         /// Client for the Games API.
@@ -92,5 +92,25 @@ namespace Modio
 
             return new Uri(uri, new Uri("/v1/", UriKind.Relative));
         }
-    }
+
+		private bool disposedValue;
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if (!disposedValue)
+			{
+				disposedValue = true;
+				if (disposing)
+				{
+					connection?.Dispose();
+				}
+			}
+		}
+
+		public void Dispose()
+		{
+			Dispose(disposing: true);
+			GC.SuppressFinalize(this);
+		}
+	}
 }
