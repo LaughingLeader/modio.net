@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Modio
 {
@@ -14,6 +15,7 @@ namespace Modio
     internal interface IConnection
     {
         Task<Response<T>> Send<T>(Request request) where T : class;
+        Task<Response<T>> Send<T>(Request request, CancellationToken token) where T : class;
     }
 
     internal class Connection : IConnection
@@ -41,7 +43,18 @@ namespace Modio
             Ensure.ArgumentNotNull(request, nameof(request));
 
             var httpRequest = BuildRequest(request);
-            var resp = await http.SendAsync(httpRequest);
+            var resp = await http.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead);
+            HandleErrors(resp);
+            return await BuildResponse<T>(resp);
+        }
+
+        public async Task<Response<T>> Send<T>(Request request, CancellationToken token)
+            where T : class
+        {
+            Ensure.ArgumentNotNull(request, nameof(request));
+
+            var httpRequest = BuildRequest(request);
+            var resp = await http.SendAsync(httpRequest, HttpCompletionOption.ResponseContentRead, token);
             HandleErrors(resp);
             return await BuildResponse<T>(resp);
         }

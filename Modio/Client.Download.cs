@@ -5,6 +5,7 @@ using FileInfo = System.IO.FileInfo;
 using Stream = System.IO.Stream;
 
 using Modio.Models;
+using System.Threading;
 
 namespace Modio
 {
@@ -88,6 +89,17 @@ namespace Modio
         }
 
         /// <summary>
+        /// Downloads the mod file to <paramref name="dest"/>.
+        /// </summary>
+        public async Task Download(File file, FileInfo dest, CancellationToken token)
+        {
+            using (var fs = dest.Create())
+            {
+                await Download(file, fs, token);
+            }
+        }
+
+        /// <summary>
         /// Downloads the mod file to <paramref name="stream"/>.
         /// </summary>
         public async Task Download(File file, Stream stream)
@@ -106,7 +118,26 @@ namespace Modio
             }
         }
 
-        async Task<Mod> GetModForDownload(uint gameId, uint modId)
+		/// <summary>
+		/// Downloads the mod file to <paramref name="stream"/>.
+		/// </summary>
+		public async Task Download(File file, Stream stream, CancellationToken token)
+		{
+			var client = new HttpClient();
+			try
+			{
+				using (var input = await client.GetStreamAsync(file.Download?.BinaryUrl))
+				{
+					await input.CopyToAsync(stream, 128000, token);
+				}
+			}
+			catch (NotFoundException ex)
+			{
+				throw new DownloadException("Failed to download the file.", ex);
+			}
+		}
+
+		async Task<Mod> GetModForDownload(uint gameId, uint modId)
         {
             try
             {

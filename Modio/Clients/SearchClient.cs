@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 using Modio.Filters;
@@ -48,10 +49,10 @@ namespace Modio
         /// <summary>
         /// Returns the complete search result as <see cref="IReadOnlyList{T}"/>.
         /// </summary>
-        public async Task<IReadOnlyList<T>> ToList()
+        public async Task<IReadOnlyList<T>> ToList(CancellationToken? token = null)
         {
             var list = new List<T>();
-            await foreach (var page in ToPagedEnumerable())
+            await foreach (var page in ToPagedEnumerable(token))
             {
                 list.AddRange(page);
             }
@@ -75,7 +76,7 @@ namespace Modio
         /// <summary>
         /// Returns the complete search result by page as <see cref="IAsyncEnumerable{T}"/>.
         /// </summary>
-        public async IAsyncEnumerable<IReadOnlyList<T>> ToPagedEnumerable()
+        public async IAsyncEnumerable<IReadOnlyList<T>> ToPagedEnumerable(CancellationToken? token = null)
         {
             var (method, path) = this.route;
             uint? remaining = null;
@@ -86,7 +87,7 @@ namespace Modio
                 {
                     req.Parameters.Extend(filter.ToParameters());
                 }
-                var resp = await Connection.Send<Result<T>>(req);
+                var resp = token.HasValue ? await Connection.Send<Result<T>>(req, token.Value) : await Connection.Send<Result<T>>(req);
                 var result = resp.Body!;
 
                 remaining ??= result.Total;
